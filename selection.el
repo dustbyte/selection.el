@@ -52,15 +52,11 @@
 
 
 (defun system-copier (type)
-  (cond
-   ((eq system-type 'darwin)
-    (start-process "pbcopy" nil "pbcopy")
-    )
-   ((eq system-type 'gnu/linux)
-    (start-process "xclip" nil "xclip" "-selection" type)
-    )
+   (if (eq system-type 'darwin)
+       (start-process "pbcopy" nil "pbcopy")
+     (start-process "xclip" nil "xclip" "-selection" type)
+     )
    )
-  )
 
 (defun to-selection (type content)
   "Save message to selection"
@@ -76,15 +72,11 @@
 (defun from-selection (type)
   "Get message from selection"
   (interactive "M")
-  (cond
-   ((eq system-type 'darwin)
-    (shell-command-to-string "pbpaste")
-    )
-   ((eq system-type 'gnu/linux)
+  (if (eq system-type 'darwin)
+      (shell-command-to-string "pbpaste")
     (shell-command-to-string (format "xclip -o -selection %s" type))
     )
-   )
-)
+  )
 
 (defun copy-to-selection (mark point selection)
   "Copy region to selection"
