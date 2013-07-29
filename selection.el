@@ -96,7 +96,7 @@
 (defun copy-to-primary (mark point)
   "Copy region to primary"
   (interactive "r")
-  (copy-to-selection mark (point)oint "primary")
+  (copy-to-selection mark point "primary")
 )
 
 (defun paste-from-clipboard ()
