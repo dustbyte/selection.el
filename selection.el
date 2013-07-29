@@ -51,55 +51,83 @@
 ;;
 
 
-(defun system-copier (type)
+(defun system-copier (selection)
+  "Tool function that selects a ``copier'' given the platform"
    (if (eq system-type 'darwin)
        (start-process "pbcopy" nil "pbcopy")
-     (start-process "xclip" nil "xclip" "-selection" type)
+     (start-process "xclip" nil "xclip" "-selection" selection)
      )
    )
 
-(defun to-selection (type content)
-  "Save message to selection"
+(defun to-selection (selection content)
+  "Generic function that saves into the specified selection a content
+given in parameter"
   (let* (
 	 (process-connection-type nil)
-	 (proc (system-copier type))
+	 (proc (system-copier selection))
 	 )
     (process-send-string proc content)
     (process-send-eof proc)
     )
   )
 
-(defun from-selection (type)
-  "Get message from selection"
+(defun from-selection (selection)
+  "Generic function that gets content from parametrized selection."
   (interactive "M")
   (if (eq system-type 'darwin)
       (shell-command-to-string "pbpaste")
-    (shell-command-to-string (format "xclip -o -selection %s" type))
+    (shell-command-to-string (format "xclip -o -selection %s" selection))
     )
   )
 
-(defun copy-to-selection (mark point selection)
-  "Copy region to selection"
-  (to-selection selection (buffer-substring-no-properties mark point))
+(defun copy-to-selection (begin end selection)
+  "Generic version of cut with parametrized selection target"
+  (to-selection selection (buffer-substring-no-properties begin end))
   (keyboard-escape-quit)
   )
 
-(defun copy-to-clipboard (mark point)
-  "Copy region to clipboard"
+(defun cut-to-selection (begin end selection)
+  "Generic version of cut with parametrized selection target"
+  (to-selection selection (buffer-substring-no-properties begin end))
+  (kill-region begin end)
+)
+
+(defun copy-to-clipboard (begin end)
+  "Copy content from the current region and put it into the clipboard
+selection"
   (interactive "r")
   (if (eq system-type 'windows-nt)
-      (clipboard-kill-ring-save mark point)
-    (copy-to-selection mark point "clipboard")
+      (clipboard-kill-ring-save begin end)
+    (copy-to-selection begin end "clipboard")
     )
 )
 
-(defun copy-to-primary (mark point)
-  "Copy region to primary"
+(defun cut-to-clipboard (begin end)
+  "Cut content from the region and paste it into the clipboard"
   (interactive "r")
-  (copy-to-selection mark point "primary")
+  (if (eq system-type 'windows-nt)
+      (clipboard-kill-region-save begin end)
+    (cut-to-selection begin end "clipboard")
+    )
+  )
+
+(defun copy-to-primary (begin end)
+  "Copy characters from region and put them into the primary
+selection (X11 only)"
+  (interactive "r")
+  (copy-to-selection begin end  "primary")
+)
+
+(defun cut-to-primary (begin end)
+  "Cut selected text form the region (i.e. kill the region) and put
+its content into the primary selection."
+  (interactive "r")
+  (cut-to-selection begin end  "primary")
 )
 
 (defun paste-from-clipboard ()
+  "Insert into the buffer at current point the content of the
+clipboard selection (X11, Mac OS X, Windows)"
   (interactive)
   (if (eq system-type 'windows-nt)
       (clipboard-yank)
@@ -108,6 +136,8 @@
 )
 
 (defun paste-from-primary ()
+  "Insert into the buffer at current point the content of the primary
+selection (X11 only)"
   (interactive)
   (insert (from-selection "primary"))
 )

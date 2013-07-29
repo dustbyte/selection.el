@@ -14,7 +14,7 @@ Only under the X Window System as a graphical environment, the ``xclip`` tool is
 installation and usage
 ======================
 ```
-$ git co git@github.com:mota/selection.el ~/.emacs.d/selection
+$ git clone git@github.com:mota/selection.el ~/.emacs.d/selection
 $ cat << EOF >> ~/.emacs
 (add-to-list 'load-path "~/emacs.d/selection")
 (require 'selection)
